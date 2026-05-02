@@ -1,11 +1,24 @@
-venv/
-logs/*
-!logs/.gitkeep
-models/*.pkl
-!models/.gitkeep
+# Python artifacts
 __pycache__/
-*.pyc
-*.log
-.DS_Store
+*.py[cod]
+*$py.class
+venv/
 .env
-.env.*
+
+# Infrastructure & Utility artifacts (File Browser)
+infra/filebrowser/filebrowser.db
+infra/filebrowser/logs/
+
+# Observation Logs
+*.log
+*.jsonl
+
+# Temporary cache
+.cache/
+tmp/
+
+# Validation runtime
+validation/*.log
+
+# OS artifacts
+.DS_Store
