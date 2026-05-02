@@ -1,0 +1,11 @@
+venv/
+logs/*
+!logs/.gitkeep
+models/*.pkl
+!models/.gitkeep
+__pycache__/
+*.pyc
+*.log
+.DS_Store
+.env
+.env.*
