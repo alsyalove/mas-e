@@ -1,0 +1,29 @@
+# Mas E — Threshold Policy
+# Phase: 0 | Status: Active
+# Governance: manual (Phase 0), akan menjadi policy layer di Phase 1
+
+version: "0.1"
+governed_by: "manual"
+
+collapse_thresholds:
+  # Jika ambiguity >= nilai ini → state HOLD
+  ambiguity_hold: 0.75
+
+  # Jika coherence >= nilai ini → state COLLAPSE (Crystallization)
+  coherence_collapse: 0.65
+
+# Lifecycle mapping dari collapse state
+# Referensi: Volume I Bab V — Knowledge Lifecycle
+lifecycle_map:
+  HOLD: "generation"            # makna baru, belum stabil
+  OBSERVE: "refinement"         # sedang dalam proses klarifikasi
+  COLLAPSE: "crystallization"   # distribusi stabil, makna terkristalisasi
+
+# Catatan untuk Phase 1:
+# Tambahkan state REINTERPRETATION dan RE_COLLAPSE di sini
+# ketika lifecycle engine aktif
+
+notes: >
+  Threshold ini tidak boleh hardcoded di engine.py.
+  Semua perubahan threshold dilakukan di file ini.
+  Engine membaca file ini saat startup.

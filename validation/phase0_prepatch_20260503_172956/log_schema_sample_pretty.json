@@ -1,0 +1,16 @@
+{
+    "input": "kebenaran makna",
+    "metrics": {
+        "ambiguity": 0.9339591174686886,
+        "coherence": 0.955,
+        "variance": 0.045,
+        "mean": 0.07071067811865475
+    },
+    "decision": {
+        "state": "HOLD",
+        "glyph": "clarity_ambiguity",
+        "reason": "Ambiguity terlalu tinggi"
+    },
+    "drift": null,
+    "timestamp": "2026-05-02T15:49:20.950044+00:00"
+}

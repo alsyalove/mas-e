@@ -26,7 +26,12 @@ def get_vectorizer():
     corpus = load_corpus()
 
     vectorizer = TfidfVectorizer(
-        max_features=20
+        # v2.2: max_features=20
+        # v2.3: dinaikkan ke 100 untuk memberi ruang vektor yang lebih kaya
+        # Diperlukan oleh Anchor Distance Calculation di Phase 2
+        # RAM overhead minimal, tetap aman untuk VM 1GB
+        max_features=100,
+        sublinear_tf=True,   # baru: mengurangi dominasi term frekuensi tinggi
     )
 
     vectorizer.fit(corpus)

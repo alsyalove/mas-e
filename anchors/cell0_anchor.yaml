@@ -1,0 +1,32 @@
+# Mas E — Semantic Anchor Schema
+# Phase: 0 | Status: Defined, Not Yet Active
+# Aktif di: Phase 1
+
+anchor_id: "cell-0-primary"
+version: "0.1"
+status: "inactive"        # aktifkan di Phase 1
+
+# Kata-kata yang menjadi pusat gravitasi makna sistem
+# Ini adalah reference frame untuk mengukur drift
+semantic_terms:
+  - kebenaran
+  - struktur
+  - makna
+  - observasi
+  - refleksi
+  - penalaran
+
+# Bobot gravitasi anchor
+weight: 1.0
+
+# Batas toleransi sebelum drift dianggap signifikan
+# Akan digunakan oleh Drift Engine di Phase 2
+drift_tolerance: 0.35
+
+# Metadata
+created_at: "2025-01-01"       # update saat deploy
+governed_by: "manual"          # akan berubah menjadi "governance_layer" di Phase 1
+notes: >
+  Anchor ini adalah pusat orientasi pertama Mas E.
+  Semua pengukuran drift dihitung relatif terhadap anchor ini.
+  Glyph yang terlalu jauh dari anchor akan masuk ke state HOLD.

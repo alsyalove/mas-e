@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from pathlib import Path
 import json
+import uuid
 
 import numpy as np
 from fastapi import FastAPI
@@ -15,6 +16,9 @@ vectorizer = get_vectorizer()
 
 LOG_FILE = Path("logs/session.jsonl")
 
+# Node identity — akan berkembang menjadi multi-node di Phase 3
+NODE_ID = "cell-0"
+
 
 class InputData(BaseModel):
     text: str = Field(..., min_length=1, max_length=500)
@@ -22,7 +26,7 @@ class InputData(BaseModel):
 
 @app.get("/health")
 def health():
-    return {"status": "alive"}
+    return {"status": "alive", "node": NODE_ID}
 
 
 @app.post("/process")
@@ -39,10 +43,24 @@ async def process_input(data: InputData):
     decision = evaluate_collapse(metrics)
 
     response = {
+        # --- Identity (baru di v2.3) ---
+        "node_id": NODE_ID,
+        "session_id": str(uuid.uuid4()),
+
+        # --- Core ---
         "input": data.text,
         "metrics": metrics,
         "decision": decision,
+
+        # --- Lifecycle (baru di v2.3, dari engine) ---
+        # lifecycle_phase sudah ada di dalam decision dict
+
+        # --- Drift placeholder (kompatibel dengan Phase 2) ---
+        # Akan berkembang menjadi:
+        # { "distance_from_anchor": 0.41, "drift_speed": 0.08, "drift_angle": 31.5 }
         "drift": None,
+
+        # --- Timestamp ---
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
 

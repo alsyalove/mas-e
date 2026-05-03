@@ -1,0 +1,16 @@
+# Memory Snapshot — Sun May  3 17:22:02 UTC 2026
+
+## free -m
+               total        used        free      shared  buff/cache   available
+Mem:             969         499         317           0         299         470
+Swap:           4095           8        4087
+
+## /proc/meminfo (ringkas)
+MemTotal:         993232 kB
+MemFree:          325108 kB
+MemAvailable:     481676 kB
+SwapTotal:       4194300 kB
+SwapFree:        4186048 kB
+
+## Swappiness
+vm.swappiness = 10

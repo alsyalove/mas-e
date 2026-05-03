@@ -1,0 +1,15 @@
+# Latency Baseline — Sun May  3 17:29:58 UTC 2026
+
+  Request 1: 0.000429s
+  Request 2: 0.000404s
+  Request 3: 0.000394s
+  Request 4: 0.000424s
+  Request 5: 0.000438s
+  Request 6: 0.000408s
+  Request 7: 0.000440s
+  Request 8: 0.000397s
+  Request 9: 0.000412s
+  Request 10: 0.000422s
+
+Average latency: 0.0004s
+Total (10 req) : 0.004s
