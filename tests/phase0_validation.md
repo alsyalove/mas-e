@@ -1,6 +1,7 @@
 # Mas E Observatory — Phase 0 Validation Suite
-# Version: 1.0 | Status: Active
-# Dibaca sebelum: apply patch v2.3, mulai Phase 1, atau setelah major change
+# Version: 1.2 | Status: Active
+# Dibaca sebelum: mulai Phase 1, atau setelah major change
+# Updated: v2.4 — sync dengan 3-axis bipolar semantic space
 
 ---
 
@@ -129,11 +130,16 @@ Target: minimal 5 baris, berisi kata-kata Indonesia
 python3 -c "
 from app.vectorizer import get_vectorizer
 v = get_vectorizer()
-print('Features:', len(v.get_feature_names_out()))
+n = len(v.get_feature_names_out())
+print('Features:', n)
+assert n > 0, 'Vectorizer tidak punya features'
+assert n <= 100, 'Features melebihi max_features=100'
 print('Vectorizer OK')
 "
 ```
-Target: `Features: 20`, `Vectorizer OK`
+Target: `Features: [jumlah kata unik di corpus]`, `Vectorizer OK`
+Catatan v2.3: max_features dinaikkan ke 100. Jumlah aktual = ukuran vocabulary corpus
+(bukan 20). Jangan hardcode angka ini — ia akan bertumbuh saat corpus diperkaya di Phase 1.
 
 ```bash
 # L2.5 — Model file tersimpan dengan benar
@@ -170,13 +176,14 @@ Target: `active (running)`
 # L3.2 — Health check direct (bypass nginx)
 curl -s http://127.0.0.1:8000/health
 ```
-Target: `{"status":"alive"}`
+Target: `{"status":"alive","node":"cell-0"}`
+Catatan v2.3: field `node` ditambahkan. Target lama `{"status":"alive"}` akan false-fail.
 
 ```bash
 # L3.3 — Health check via nginx
 curl -s http://localhost/health
 ```
-Target: `{"status":"alive"}`
+Target: `{"status":"alive","node":"cell-0"}`
 
 ```bash
 # L3.4 — Happy path: input valid
@@ -184,7 +191,7 @@ curl -s -X POST http://localhost/process \
   -H "Content-Type: application/json" \
   -d '{"text": "kebenaran logika pengetahuan"}' | python3 -m json.tool
 ```
-Target: JSON lengkap dengan `input`, `metrics`, `decision`, `drift`, `timestamp`
+Target: JSON lengkap dengan `node_id`, `session_id`, `input`, `metrics`, `decision`, `drift`, `timestamp`
 
 ```bash
 # L3.5 — Input kosong: harus validation error, bukan crash
@@ -227,7 +234,7 @@ Target: `422`
 **Tujuan:** Memastikan collapse logic benar, konsisten, dan tidak menghasilkan output di luar kontrak.
 
 ```bash
-# L4.1 — Metrics selalu dalam range yang valid [0.0, 1.0]
+# L4.1 — Metrics struktur valid dan semua nilai dalam range (v2.4)
 curl -s -X POST http://localhost/process \
   -H "Content-Type: application/json" \
   -d '{"text": "makna refleksi pemahaman memori"}' \
@@ -235,33 +242,80 @@ curl -s -X POST http://localhost/process \
 import json, sys
 r = json.load(sys.stdin)
 m = r['metrics']
-assert 0.0 <= m['ambiguity'] <= 1.0, 'Ambiguity out of range: ' + str(m['ambiguity'])
-assert 0.0 <= m['coherence'] <= 1.0, 'Coherence out of range: ' + str(m['coherence'])
-print('Metrics range: OK')
-print('  ambiguity :', round(m['ambiguity'], 3))
-print('  coherence :', round(m['coherence'], 3))
-print('  variance  :', round(m['variance'], 4))
-print('  mean      :', round(m['mean'], 4))
+
+# Cek struktur top-level metrics (v2.4)
+assert 'axes'            in m, 'Missing: axes'
+assert 'magnitude'       in m, 'Missing: magnitude'
+assert 'active_features' in m, 'Missing: active_features'
+assert 'raw'             in m, 'Missing: raw'
+
+# Cek axis keys
+axes = m['axes']
+assert 'clarity_ambiguity' in axes, 'Missing axis: clarity_ambiguity'
+assert 'stillness_motion'  in axes, 'Missing axis: stillness_motion'
+assert 'value_order'       in axes, 'Missing axis: value_order'
+
+# Cek range: semua axis dalam (-0.99, 0.99)
+for name, val in axes.items():
+    assert -0.99 <= val <= 0.99, f'{name} out of range: {val}'
+
+# Cek magnitude selalu >= 0
+assert m['magnitude'] >= 0, 'Magnitude negatif: ' + str(m['magnitude'])
+
+# Cek active_features > 0 (input dikenali corpus)
+assert m['active_features'] > 0, 'active_features = 0'
+
+print('Metrics structure: OK')
+print('  clarity_ambiguity :', axes['clarity_ambiguity'])
+print('  stillness_motion  :', axes['stillness_motion'])
+print('  value_order       :', axes['value_order'])
+print('  magnitude         :', m['magnitude'])
+print('  active_features   :', m['active_features'])
 "
 ```
 
 ```bash
-# L4.2 — Decision selalu punya 3 key wajib dan state valid
+# L4.2 — Decision selalu punya semua key wajib dan state valid (v2.4)
 curl -s -X POST http://localhost/process \
   -H "Content-Type: application/json" \
   -d '{"text": "emosi intuisi perasaan persepsi"}' \
   | python3 -c "
 import json, sys
 r = json.load(sys.stdin)
+
+# Cek identity fields (v2.3)
+assert 'node_id'    in r, 'Missing: node_id'
+assert 'session_id' in r, 'Missing: session_id'
+assert r['node_id'] == 'cell-0', 'node_id salah: ' + str(r['node_id'])
+
+# Cek decision fields (v2.4)
 d = r['decision']
-assert 'state' in d,  'Missing: state'
-assert 'glyph' in d,  'Missing: glyph'
-assert 'reason' in d, 'Missing: reason'
-valid_states = ['HOLD', 'OBSERVE', 'COLLAPSE']
+assert 'state'          in d, 'Missing: state'
+assert 'seal'           in d, 'Missing: seal (v2.4)'
+assert 'glyph'          in d, 'Missing: glyph'
+assert 'reason'         in d, 'Missing: reason'
+assert 'dominant_axis'  in d, 'Missing: dominant_axis (v2.4)'
+assert 'lifecycle_phase' in d, 'Missing: lifecycle_phase'
+
+valid_states = ['HOLD', 'OBSERVE', 'COLLAPSE', 'POTENTIAL']
 assert d['state'] in valid_states, 'Unknown state: ' + d['state']
+
+valid_seals = ['cipher', 'reflection', 'ascend', 'paradox']
+assert d['seal'] in valid_seals, 'Unknown seal: ' + d['seal']
+
+valid_phases = ['generation', 'refinement', 'crystallization', 'incubation']
+assert d['lifecycle_phase'] in valid_phases, 'Unknown lifecycle_phase: ' + d['lifecycle_phase']
+
+valid_axes = ['clarity_ambiguity', 'stillness_motion', 'value_order']
+assert d['dominant_axis'] in valid_axes, 'Unknown dominant_axis: ' + d['dominant_axis']
+
 print('Decision structure: OK')
-print('  state :', d['state'])
-print('  glyph :', d['glyph'])
+print('  state          :', d['state'])
+print('  seal           :', d['seal'])
+print('  glyph          :', d['glyph'])
+print('  dominant_axis  :', d['dominant_axis'])
+print('  lifecycle_phase:', d['lifecycle_phase'])
+print('  node_id        :', r['node_id'])
 "
 ```
 
@@ -331,17 +385,30 @@ done
 Target: semua `VALID JSON`
 
 ```bash
-# L5.4 — Log punya semua field wajib
+# L5.4 — Log punya semua field wajib (termasuk field baru v2.3)
 tail -n 1 ~/mas_e/logs/session.jsonl | python3 -c "
 import json, sys
 r = json.load(sys.stdin)
-required = ['input', 'metrics', 'decision', 'drift', 'timestamp']
-missing = [k for k in required if k not in r]
+
+# Field wajib Phase 0 original
+required_base = ['input', 'metrics', 'decision', 'drift', 'timestamp']
+# Field tambahan v2.3
+required_v23  = ['node_id', 'session_id']
+# Field wajib di dalam decision (v2.3)
+required_decision = ['state', 'glyph', 'reason', 'lifecycle_phase']
+
+all_required = required_base + required_v23
+missing = [k for k in all_required if k not in r]
+missing_decision = [k for k in required_decision if k not in r.get('decision', {})]
+
 if missing:
-    print('MISSING fields:', missing)
+    print('MISSING top-level fields:', missing)
+elif missing_decision:
+    print('MISSING decision fields:', missing_decision)
 else:
     print('Log schema: OK')
     print('Fields found:', list(r.keys()))
+    print('lifecycle_phase:', r['decision'].get('lifecycle_phase'))
 "
 ```
 
@@ -439,7 +506,7 @@ Isi bagian ini setiap kali validasi dijalankan.
 
 ```
 Tanggal        :
-Versi          : Phase 0 v2.2
+Versi          : Phase 0 v2.4
 Dijalankan oleh:
 
 Layer 1 : [ ] PASS  [ ] FAIL — Catatan:
@@ -449,7 +516,7 @@ Layer 4 : [ ] PASS  [ ] FAIL — Catatan:
 Layer 5 : [ ] PASS  [ ] FAIL — Catatan:
 Layer 6 : [ ] PASS  [ ] FAIL — Catatan:
 
-Status  : [ ] FULLY ALIVE — siap apply patch v2.3
+Status  : [ ] FULLY ALIVE — siap mulai Phase 1
           [ ] NOT READY  — lihat catatan di atas
 ```
 

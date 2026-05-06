@@ -15,6 +15,7 @@ app = FastAPI()
 vectorizer = get_vectorizer()
 
 LOG_FILE = Path("logs/session.jsonl")
+LOG_FILE.parent.mkdir(exist_ok=True)   # cukup sekali saat startup
 
 # Node identity — akan berkembang menjadi multi-node di Phase 3
 NODE_ID = "cell-0"
@@ -33,27 +34,24 @@ def health():
 async def process_input(data: InputData):
     tfidf_vector = vectorizer.transform([data.text]).toarray()[0]
 
-    if np.sum(tfidf_vector) == 0:
+    if not np.any(tfidf_vector):
         return {
             "error": "Input tidak dikenali corpus",
-            "hint": "Gunakan kata yang ada di corpus referensi"
+            "hint":  "Gunakan kata yang ada di corpus referensi"
         }
 
-    metrics = compute_metrics(tfidf_vector)
+    metrics  = compute_metrics(tfidf_vector)
     decision = evaluate_collapse(metrics)
 
     response = {
-        # --- Identity (baru di v2.3) ---
-        "node_id": NODE_ID,
+        # --- Identity (v2.3) ---
+        "node_id":    NODE_ID,
         "session_id": str(uuid.uuid4()),
 
         # --- Core ---
-        "input": data.text,
-        "metrics": metrics,
+        "input":    data.text,
+        "metrics":  metrics,
         "decision": decision,
-
-        # --- Lifecycle (baru di v2.3, dari engine) ---
-        # lifecycle_phase sudah ada di dalam decision dict
 
         # --- Drift placeholder (kompatibel dengan Phase 2) ---
         # Akan berkembang menjadi:
@@ -63,8 +61,6 @@ async def process_input(data: InputData):
         # --- Timestamp ---
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
-
-    LOG_FILE.parent.mkdir(exist_ok=True)
 
     with open(LOG_FILE, "a", encoding="utf-8") as f:
         f.write(json.dumps(response) + "\n")

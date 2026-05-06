@@ -1,29 +1,60 @@
 # Mas E — Threshold Policy
-# Phase: 0 | Status: Active
+# Phase: 0 | Version: 0.2 | Status: Active
 # Governance: manual (Phase 0), akan menjadi policy layer di Phase 1
 
-version: "0.1"
+version: "0.2"
 governed_by: "manual"
 
+# ----------------------------------------------------------------
+# Collapse Thresholds — 3-axis bipolar (v2.4)
+# ----------------------------------------------------------------
+# Semua threshold hidup di sini. Tidak pernah hardcoded di engine.py.
+
 collapse_thresholds:
-  # Jika ambiguity >= nilai ini → state HOLD
-  ambiguity_hold: 0.75
 
-  # Jika coherence >= nilai ini → state COLLAPSE (Crystallization)
-  coherence_collapse: 0.65
+  # Magnitude — proximity ke titik permulaan
+  # Input dengan magnitude di bawah ini belum punya sinyal cukup
+  magnitude_observe: 0.20
 
-# Lifecycle mapping dari collapse state
+  # Axis clarity_ambiguity
+  clarity_cipher: -0.50    # di bawah ini → HOLD (cipher belum terpecahkan)
+  clarity_ascend:  0.50    # di atas ini (+ order_ascend) → COLLAPSE
+
+  # Axis stillness_motion
+  motion_paradox: -0.30    # di bawah ini → POTENTIAL (gerak potensial)
+
+  # Axis value_order
+  order_ascend: 0.30       # di atas ini (+ clarity_ascend) → COLLAPSE
+
+# ----------------------------------------------------------------
+# Lifecycle Map — collapse state → knowledge lifecycle phase
 # Referensi: Volume I Bab V — Knowledge Lifecycle
+# ----------------------------------------------------------------
 lifecycle_map:
-  HOLD: "generation"            # makna baru, belum stabil
-  OBSERVE: "refinement"         # sedang dalam proses klarifikasi
-  COLLAPSE: "crystallization"   # distribusi stabil, makna terkristalisasi
+  HOLD:      "generation"      # makna baru, belum stabil
+  OBSERVE:   "refinement"      # sedang dalam proses klarifikasi
+  COLLAPSE:  "crystallization" # distribusi stabil, makna terkristalisasi
+  POTENTIAL: "incubation"      # gerak potensial — makna bergerak ke dalam
 
-# Catatan untuk Phase 1:
+# ----------------------------------------------------------------
+# Seal Map — collapse state → 4 Seal identity
+# Referensi: Volume I — 4 Seal
+# ----------------------------------------------------------------
+seal_map:
+  HOLD:      "cipher"          # makna tersembunyi, belum terpecahkan
+  OBSERVE:   "reflection"      # pengamatan, belum cukup jelas
+  COLLAPSE:  "ascend"          # makna naik, terkristalisasi
+  POTENTIAL: "paradox"         # gerak tersembunyi, paradox aktif
+
+# ----------------------------------------------------------------
+# Catatan untuk Phase 1
+# ----------------------------------------------------------------
 # Tambahkan state REINTERPRETATION dan RE_COLLAPSE di sini
-# ketika lifecycle engine aktif
+# ketika lifecycle engine aktif di Phase 1.
+# Tambahkan threshold berbasis anchor_distance setelah anchor aktif.
 
 notes: >
-  Threshold ini tidak boleh hardcoded di engine.py.
+  v0.2 — diperluas untuk 3-axis bipolar semantic space (v2.4).
+  Threshold tidak pernah hardcoded di engine.py.
   Semua perubahan threshold dilakukan di file ini.
-  Engine membaca file ini saat startup.
+  Engine membaca file ini saat startup dan meng-cache hasilnya.
