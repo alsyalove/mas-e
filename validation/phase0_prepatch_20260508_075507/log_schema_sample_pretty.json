@@ -1,0 +1,36 @@
+{
+    "node_id": "cell-0",
+    "session_id": "19ec5871-d11e-45ef-999f-7a96799da869",
+    "input": "makna orientasi",
+    "metrics": {
+        "axes": {
+            "clarity_ambiguity": -0.4706,
+            "stillness_motion": 0.3576,
+            "value_order": -0.9554
+        },
+        "magnitude": 1.1234,
+        "active_features": 2,
+        "raw": {
+            "mean": 0.6965,
+            "variance": 0.0149,
+            "density": 0.0299
+        }
+    },
+    "decision": {
+        "state": "OBSERVE",
+        "seal": "reflection",
+        "glyph": "humility",
+        "reason": "Paradox aktif \u2014 belum cukup jelas untuk collapse",
+        "dominant_axis": "value_order",
+        "lifecycle_phase": "refinement"
+    },
+    "drift": {
+        "anchor_id": "cell-0-primary",
+        "distance_from_anchor": 0.7353,
+        "alert": true,
+        "drift_speed": null,
+        "drift_angle": null,
+        "trajectory": null
+    },
+    "timestamp": "2026-05-08T07:53:34.334634+00:00"
+}
